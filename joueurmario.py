@@ -53,7 +53,7 @@ class   Joueurmario(pygame.sprite.Sprite):
 
         self.vie = 100
         self.degats_recus = 0
-        self.jauge_vie = (60, 518, 200, 13)
+
 
 
     def mouvement(self, vitesse):
@@ -75,13 +75,13 @@ class   Joueurmario(pygame.sprite.Sprite):
         #image = dict[self.etat][self.index]
         surface.blit(image, self.rect)
         pygame.draw.rect(surface, (0, 255, 255), self.rect, 1)
-        pygame.draw.rect(surface, (255, 0, 0), self.jauge_vie)
-        pygame.draw.rect(surface, (0, 155, 0), (self.jauge_vie[0], self.jauge_vie[1], self.vie * 2, self.jauge_vie[3]))
+        pygame.draw.rect(surface, (255, 0, 0), (self.rect.x, self.rect.y - 20, 50, 10))
+        pygame.draw.rect(surface, (0, 155, 0), (self.rect.x, self.rect.y - 20, self.vie / 2, 10))
 
     def sauter(self):
         if self.a_sauter:
 
-            if self.saut_montee >= 10:
+            if self.saut_montee >= 13:
                 self.saut_descente -= 1
                 self.saut = self.saut_descente
 
