@@ -6,15 +6,17 @@ from joueurmario import Joueurmario
 from sol import Sol
 from plateforme import Plateforme
 from ninja import Ninja
-from projectiles import Projectile, Slash
+from projectiles import Projectile, Slash, Flamme
 
 
 class Jeu:
     def __init__(self):
 
+
         self.ecran = pygame.display.set_mode((1000, 1000))
         pygame.display.set_caption('Mario Jeu')
         self.jeu_encours = True
+
 
         self.joueur_x, self.joueur_y = 200, 200
         self.taille = [32, 64]
@@ -22,18 +24,20 @@ class Jeu:
         self.joueurmario = Joueurmario(self.joueur_x, self.joueur_x, self.taille)
         self.image_joueur = pygame.image.load("marioracaille.png")
         self.image_joueur_rect = pygame.Rect(0, 0, 111, 145)
-        self.joueurmario.gravite = (0, 5)
+        self.joueurmario.gravite = (0, 10)
         self.joueurmario.resistance = (0, 0)
         self.joueurmario.collision_sol = True
+
 
         self.ninja_x, self.ninja_y = 100, 400
         self.ninja_taille = [39, 64]
         self.ninja_vitesse_x = 0
         self.ninja = Ninja(self.joueur_x, self.joueur_y, self.ninja_taille)
         self.image_ninja = pygame.image.load('kakashi.png')
-        self.ninja.gravite = (0, 5)
+        self.ninja.gravite = (0, 10)
         self.ninja.resistance = (0, 0)
         self.ninja.collision_sol = True
+
 
         self.image_arriere_plan = pygame.image.load("chateaubowser.png")
         self.arriere_plan_rect = [0, 0, 724, 397]
@@ -77,6 +81,13 @@ class Jeu:
         self.image_slash = self.image_ninja.subsurface(self.slash_image_rect)
         self.image_slash = pygame.transform.scale(self.image_slash, (30,30))
 
+        self.flamme_groupe = Group()
+        self.image_flamme = pygame.image.load("kakashi.png")
+        self.flamme_image_rect = pygame.Rect(631, 4335, 12, 13)
+        self.image_flamme = self.image_ninja.subsurface(self.flamme_image_rect)
+        self.image_flamme = pygame.transform.scale(self.image_flamme, (30, 30))
+
+
         # self.debut_time = 90000
         # self.bouton = pygame.image.load("play_button.png")
         # self.bouton_rect = pygame.Rect(0, 0, 148, 148)
@@ -84,9 +95,6 @@ class Jeu:
         # self.image_bouton = pygame.transform.scale(self.image_bouton, (50, 50))
         # self.image_joueur = self.image_joueur.subsurface(self.image_joueur_rect)
 
-    """
-    Boucle principale :
-    """
 
     def boucle_principale(self):
 
@@ -101,8 +109,6 @@ class Jeu:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
-
-
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RIGHT:
@@ -142,13 +148,18 @@ class Jeu:
                         self.joueurmario.etat = "debout"
 
 
+
                 if event.type == pygame.KEYDOWN:
 
-                    if event.key == pygame.K_e:
-                        self.ninja.etat = 'debout'
+
 
                     if event.key == pygame.K_d:
                         self.ninja_vitesse_x = 10
+                        self.ninja.direction = 1
+                        self.ninja.etat = "bouger"
+
+                    if event.key == pygame.K_a:
+                        self.ninja_vitesse_x = -10
                         self.ninja.direction = 1
                         self.ninja.etat = "bouger"
 
@@ -166,10 +177,19 @@ class Jeu:
                         self.ninja.a_attaque = True
                         self.ninja.etat = "attaque"
 
+                    if event.key == pygame.K_r:
+                        self.ninja.etat = "attaque de flamme"
+                        pygame.time.get_ticks(1000)
+                        self.ninja.a_attaque_flamme = True
+
 
                 if event.type == pygame.KEYUP:
 
                     if event.key == pygame.K_d:
+                        self.ninja_vitesse_x = 0
+                        self.ninja.etat = "debout"
+
+                    if event.key == pygame.K_a:
                         self.ninja_vitesse_x = 0
                         self.ninja.etat = "debout"
 
@@ -179,6 +199,10 @@ class Jeu:
 
                     if event.key == pygame.K_e:
                         self.ninja.a_attaque = False
+                        self.ninja.etat = "debout"
+
+                    if event.key == pygame.K_r:
+                        self.ninja.a_attaque_flamme = False
                         self.ninja.etat = "debout"
 
 
@@ -235,7 +259,13 @@ class Jeu:
                     if self.delta_temps > 2:
                         self.ninja.degats_recus = 30
                     self.ninja.vie -= self.ninja.degats_recus
-                    self.ninja.degats_recus = 0
+                    self.ninja.degats_recus
+
+                if self.joueurmario.vie <= 0:
+                    self.joueurmario.etat = 'mort'
+                if self.ninja.vie <= 0:
+                    self.ninja.etat = 'mort'
+
 
             if self.ninja.a_attaque:
                 if len(self.slash_groupe) < self.ninja.tir_autorise :
@@ -243,23 +273,47 @@ class Jeu:
                     self.slash_groupe.add(slash)
                     self.ninja.a_attaque = False
 
+
+
+            if self.ninja.a_attaque_flamme :
+                if len(self.flamme_groupe) < self.ninja.tir_autorise :
+                    flamme = Flamme (self.ninja.rect.x + 20, self.ninja.rect.y - 5, [30, 30], self.image_flamme)
+                    self.flamme_groupe.add(flamme)
+                    self.ninja.a_attaque_flamme = False
+
             for slash in self.slash_groupe:
                 slash.mouvement(50)
                 if slash.rect.right >= self.rect.right or slash.rect.left <= self.rect.left:
                     self.slash_groupe.remove(slash)
 
-                    if self.joueurmario.rect.colliderect(slash.rect):
-                        self.slash_groupe.remove(slash)
-                        self.joueurmario.rect.x += 3
-                        self.joueurmario.degats_recus = 10
-                        self.joueurmario.vie -= self.joueurmario.degats_recus
-                        self.joueurmario.degats_recus = 0
+                if self.joueurmario.rect.colliderect(slash.rect):
+                    self.slash_groupe.remove(slash)
+                    self.joueurmario.rect.x += 3
+                    self.joueurmario.degats_recus = 10
+                    self.joueurmario.vie -= self.joueurmario.degats_recus
+                    self.joueurmario.degats_recus = 0
 
-            if self.joueurmario.vie <= 0:
-                self.joueurmario.etat = 'mort'
-            if self.ninja.vie <= 0:
-                self.ninja.etat = 'mort'
+                if self.joueurmario.vie <= 0:
+                    self.joueurmario.etat = 'mort'
+                if self.ninja.vie <= 0:
+                    self.ninja.etat = 'mort'
 
+            for flamme in self.flamme_groupe:
+                flamme.mouvement(50)
+                if flamme.rect.right >= self.rect.right or flamme.rect.left <= self.rect.left:
+                    self.flamme_groupe.remove(flamme)
+
+                if self.joueurmario.rect.colliderect(slash.rect):
+                    self.slash_groupe.remove(slash)
+                    self.joueurmario.rect.x += 3
+                    self.joueurmario.degats_recus = 10
+                    self.joueurmario.vie -= self.joueurmario.degats_recus
+                    self.joueurmario.degats_recus = 0
+
+                if self.joueurmario.vie <= 0:
+                    self.joueurmario.etat = 'mort'
+                if self.ninja.vie <= 0:
+                    self.ninja.etat = 'mort'
 
             #secondes = (self.debut_time - pygame.time.get_ticks()) // 1000
 
@@ -300,6 +354,9 @@ class Jeu:
 
             for slash in self.slash_groupe:
                 slash.afficher(self.ecran)
+
+            for flamme in self.flamme_groupe:
+                flamme.afficher(self.ecran)
 
             pygame.display.flip()
 
