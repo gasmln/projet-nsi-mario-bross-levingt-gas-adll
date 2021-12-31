@@ -1,7 +1,7 @@
+
 import pygame
 
-
-class Ninja(pygame.sprite.Sprite):
+class   Ninja(pygame.sprite.Sprite):
 
     def __init__(self, x, y, taille):
 
@@ -16,6 +16,7 @@ class Ninja(pygame.sprite.Sprite):
         self.nombre_de_saut = 0
         self.a_sauter = False
         self.a_attaque = False
+        self.a_attaque_flamme = False
         self.tir_autorise = 1
         self.direction = 1
 
@@ -40,10 +41,10 @@ class Ninja(pygame.sprite.Sprite):
         self.ninja_saute = [
             pygame.Rect(23, 850, 36, 67),
             pygame.Rect(135, 854, 48, 64),
-            # pygame.Rect(),
+            #pygame.Rect(),
         ]
 
-        self.ninja_attaque = [
+        self.ninja_attaque= [
             pygame.Rect(288, 1365, 48, 55),
             pygame.Rect(344, 1367, 52, 53),
             pygame.Rect(405, 1367, 21, 54),
@@ -51,22 +52,33 @@ class Ninja(pygame.sprite.Sprite):
             pygame.Rect(540, 1367, 51, 54),
         ]
 
+        self.ninja_attaque_flamme = [
+            pygame.Rect(20, 4133, 70, 62),
+            pygame.Rect(101, 4142, 63, 54),
+            pygame.Rect(220, 4133, 86, 60),
+            pygame.Rect(317, 4128, 80, 64),
+            pygame.Rect(415, 4133, 76, 58),
+            pygame.Rect(504, 4125, 78, 67),
+            pygame.Rect(595, 4130, 96, 61),
+            pygame.Rect(704, 4128, 93, 62),
+            pygame.Rect(808, 4133, 79, 58),
+        ]
+
         self.vie = 100
         self.degats_recus = 0
 
+        #self.ninja_mort = [
+            #pygame.Rect(),
+            #pygame.Rect(),
+            #pygame.Rect(),
+            #pygame.Rect(),
 
-        # self.ninja_mort = [
-        # pygame.Rect(),
-        # pygame.Rect(),
-        # pygame.Rect(),
-        # pygame.Rect(),
-
-        # ]
+        #]
 
         self.etat = "debout"
         self.index = 0
 
-        # self.ninja_saute =
+        #self.ninja_saute =
 
     def mouvement(self, vitesse):
 
@@ -82,20 +94,21 @@ class Ninja(pygame.sprite.Sprite):
         image = dict[self.etat][self.index]
 
         if self.direction == -1:
-            image = pygame.transform.flip(image, True, False)
+             image = pygame.transform.flip(image, True, False)
 
-        # image = dict[self.etat][self.index]
+
         surface.blit(image, self.rect)
         pygame.draw.rect(surface, (0, 255, 255), self.rect, 1)
         pygame.draw.rect(surface, (255, 0, 0), (self.rect.x, self.rect.y - 20, 50, 10))
         pygame.draw.rect(surface, (0, 155, 0), (self.rect.x, self.rect.y - 20, self.vie / 2, 10))
 
     def sauter(self):
+
         if self.a_sauter:
 
-            if self.saut_montee >= 10:
-                self.saut_descente -= 1
-                self.saut = self.saut_descente
+            if self.saut_montee >= 13:
+               self.saut_descente -= 1
+               self.saut = self.saut_descente
 
             else:
                 self.saut_montee += 1
@@ -106,11 +119,12 @@ class Ninja(pygame.sprite.Sprite):
                 self.saut_descente = 5
                 self.a_sauter = False
 
-        self.rect.y = self.rect.y - (7 * (self.saut / 2))
+            self.rect.y = self.rect.y - (7 * (self.saut / 2))
 
     def convertir_rect_surface(self, image, dict):
 
         for image_debout in self.ninja_debout:
+
             image_rect = self.ninja_debout.pop(0)
             image_ninja = image.subsurface(image_rect)
             image_ninja = pygame.transform.scale(image_ninja, (39, 64))
@@ -142,13 +156,13 @@ class Ninja(pygame.sprite.Sprite):
 
         dict["attaque"] = self.ninja_attaque
 
+        for image_attaque_flamme in self.ninja_attaque_flamme:
+            image_rect = self.ninja_attaque_flamme.pop(0)
+            image_ninja = image.subsurface(image_rect)
+            image_ninja = pygame.transform.scale(image_ninja, (39, 64))
+            self.ninja_attaque_flamme.append(image_ninja)
+
+        dict["attaque de flamme"] = self.ninja_attaque_flamme
+
+
         return dict
-
-        # for image_attaque in self.ninja_attaque:
-        # rect_joueur = self.ninja_attaque.pop(0)
-        # image_joueur = image.subsurface(rect_joueur)
-        # image_joueur = pygame.transform.scale(image_joueur, (80, 60))
-        # self.ninja_attaque.append(image_joueur)
-
-        # dict['ninja'] = self.ninja_attaque
-
